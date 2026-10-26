@@ -1,0 +1,60 @@
+# Releases every merge to main: tags the merge commit with the next version and starts the
+# release workflow for that tag.
+#
+# The merged pull request's labels pick the version bump:
+#   "release: major"  1.4.2 -> 2.0.0
+#   "release: minor"  1.4.2 -> 1.5.0
+#   (none)            1.4.2 -> 1.4.3
+#   "skip release"    no release
+name: Auto release
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag and start release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # create the version tag
+      actions: write         # start the release workflow
+      pull-requests: read    # read the merged pull request's labels
+    steps:
+      - name: Tag next version and start the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LABELS="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].labels[]?.name' || true)"
+          if grep -qx "skip release" <<< "$LABELS"; then
+            echo "Merged with \"skip release\", so no release." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          TAGS="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/v" \
+            --jq '.[] | "\(.ref | ltrimstr("refs/tags/v")) \(.object.sha)"')"
+          if grep -q " $GITHUB_SHA$" <<< "$TAGS"; then
+            echo "$GITHUB_SHA is already tagged, so no release." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          LATEST="$(cut -d' ' -f1 <<< "$TAGS" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1 || true)"
+          IFS=. read -r MAJOR MINOR PATCH <<< "${LATEST:-0.0.0}"
+          if grep -qx "release: major" <<< "$LABELS"; then
+            VERSION="$((MAJOR + 1)).0.0"
+          elif grep -qx "release: minor" <<< "$LABELS"; then
+            VERSION="$MAJOR.$((MINOR + 1)).0"
+          else
+            VERSION="$MAJOR.$MINOR.$((PATCH + 1))"
+          fi
+
+          gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/v$VERSION" -f sha="$GITHUB_SHA" > /dev/null
+          # Tags created with GITHUB_TOKEN don't trigger workflows; workflow_dispatch is the exception.
+          gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "v$VERSION"
+          echo "Tagged v$VERSION (previous: v${LATEST:-none}) and started the release." >> "$GITHUB_STEP_SUMMARY"
