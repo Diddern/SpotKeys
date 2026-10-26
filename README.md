@@ -89,7 +89,8 @@ See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
 ## Contributing
 
 Pull requests are welcome. `main` is protected: every change goes through a pull request that must
-pass the CI build and CodeQL scanning, and is squash-merged.
+pass the CI build, workflow linting (actionlint and zizmor) and CodeQL scanning, and is
+squash-merged.
 
 ## Building from source
 
