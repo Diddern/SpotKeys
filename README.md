@@ -17,6 +17,7 @@ StreamKeys.
 - Sends F7/F8/F9 (and the media keys on external keyboards) to Spotify
 - Menu bar icon showing what's playing, with buttons for play/pause, next and previous
 - Pause SpotKeys without quitting it
+- Warns in the menu when another app may be taking the media keys
 - Optionally launches Spotify when you press Play
 - Optionally opens at login
 - No Dock icon, no data collection, no network access, no dependencies – just Swift and AppKit
@@ -34,7 +35,8 @@ StreamKeys.
 
 Requires macOS 13 Ventura or later on Apple Silicon.
 
-> Quit BeardedSpice and similar apps first, so they don't fight over the keys.
+> Quit BeardedSpice and similar apps first, so they don't fight over the keys. SpotKeys names any
+> such app it finds at the top of its menu.
 
 ### Verifying the download
 
@@ -173,6 +175,9 @@ while it's paused or missing permissions.
 SpotKeys installs a `CGEventTap` for `NX_SYSDEFINED` events. Play/Pause, Next and Previous are
 swallowed before macOS hands them to Now Playing, and `playpause`, `next track` or `previous track` is
 sent to Spotify over AppleScript instead.
+
+When you open the menu, SpotKeys checks the system's list of event taps (`CGGetEventTapList`) for
+other apps that can swallow `NX_SYSDEFINED` events before SpotKeys sees them, and names them.
 
 ## License
 
