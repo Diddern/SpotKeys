@@ -6,6 +6,8 @@
 "Previous Track" = "Forrige spor";
 "⚠︎  SpotKeys Needs Accessibility Access" = "⚠︎  SpotKeys trenger tilgang til Tilgjengelighet";
 "Open System Settings…" = "Åpne Systeminnstillinger…";
+"⚠︎  %@ May Take the Media Keys" = "⚠︎  %@ kan ta over mediatastene";
+"Quit it if the media keys don’t reach Spotify." = "Avslutt den hvis mediatastene ikke når Spotify.";
 "Control Spotify with Media Keys" = "Styr Spotify med mediatastene";
 "Launch Spotify on Play" = "Start Spotify ved Play";
 "Open at Login" = "Start ved innlogging";

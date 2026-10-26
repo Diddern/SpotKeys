@@ -56,6 +56,33 @@ final class MediaKeyTap {
         return true
     }
 
+    /// Other apps with an active tap that can swallow the media keys before SpotKeys sees them.
+    /// Listen-only taps, per-app taps and taps after SpotKeys' own are ignored, and so are
+    /// processes outside the user's session (such as security daemons that tap every event and
+    /// pass it on), so this names the BeardedSpice-style apps that actually fight over the keys.
+    static func otherInterceptors() -> [NSRunningApplication] {
+        var count: UInt32 = 0
+        guard CGGetEventTapList(0, nil, &count) == .success, count > 0 else { return [] }
+        var taps = [CGEventTapInformation](repeating: CGEventTapInformation(), count: Int(count))
+        guard CGGetEventTapList(count, &taps, &count) == .success else { return [] }
+
+        let ownPID = ProcessInfo.processInfo.processIdentifier
+        let pids = taps.prefix(Int(count))
+            .filter { tap in
+                tap.enabled
+                    && tap.options == .defaultTap
+                    && tap.eventsOfInterest & (CGEventMask(1) << systemDefinedEventType) != 0
+                    && tap.tapPoint != .cgAnnotatedSessionEventTap
+                    && tap.processBeingTapped == 0
+                    && tap.tappingProcess != ownPID
+            }
+            .map(\.tappingProcess)
+        return Set(pids)
+            .compactMap { NSRunningApplication(processIdentifier: $0) }
+            .filter { $0.localizedName != nil }
+            .sorted { $0.localizedName! < $1.localizedName! }
+    }
+
     private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
         let passThrough = Unmanaged.passUnretained(event)
 

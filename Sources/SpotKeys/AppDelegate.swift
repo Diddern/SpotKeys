@@ -96,6 +96,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             menu.addItem(.separator())
         }
 
+        if interceptKeys {
+            let interceptors = MediaKeyTap.otherInterceptors()
+            for app in interceptors {
+                let warning = label(String(localized: "⚠︎  \(app.localizedName!) May Take the Media Keys"))
+                warning.toolTip = String(localized: "Quit it if the media keys don’t reach Spotify.")
+                menu.addItem(warning)
+            }
+            if !interceptors.isEmpty { menu.addItem(.separator()) }
+        }
+
         menu.addItem(item(String(localized: "Control Spotify with Media Keys"), #selector(toggleInterceptKeys), isOn: interceptKeys))
         menu.addItem(item(String(localized: "Launch Spotify on Play"), #selector(toggleLaunchSpotify), isOn: launchSpotifyOnPlay))
         menu.addItem(item(String(localized: "Open at Login"), #selector(toggleLoginItem),
