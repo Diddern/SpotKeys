@@ -42,7 +42,7 @@ for attempt in 1 2 3; do
 done
 codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG"
 
-echo "Notarizing $DMG…"
+echo "Notarizing ${DMG}..."
 RESULT="$(xcrun notarytool submit "$DMG" "${NOTARY_AUTH[@]}" --wait --output-format json)"
 STATUS="$(plutil -extract status raw -o - - <<< "$RESULT")"
 if [[ "$STATUS" != "Accepted" ]]; then
