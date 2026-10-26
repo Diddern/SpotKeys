@@ -20,7 +20,8 @@ StreamKeys.
 - Warns in the menu when another app may be taking the media keys
 - Optionally launches Spotify when you press Play
 - Optionally opens at login
-- No Dock icon, no data collection, no network access, no dependencies – just Swift and AppKit
+- Updates itself: checks GitHub for a new release once a day and installs it with one click
+- No Dock icon, no data collection, no dependencies – just Swift and AppKit
 - English and Norwegian
 
 ## Install
@@ -38,6 +39,20 @@ Requires macOS 13 Ventura or later on Apple Silicon.
 > Quit BeardedSpice and similar apps first, so they don't fight over the keys. SpotKeys names any
 > such app it finds at the top of its menu.
 
+### Updates
+
+SpotKeys checks for a new release once a day. When there is one, it asks whether to install it;
+*Install and Restart* downloads the DMG, checks it and swaps in the new version, keeping your
+settings and permissions. You can also pick *Check for Updates…* in the menu, or turn off
+*Check for Updates Automatically*.
+
+Before installing, SpotKeys verifies that both the disk image and the app are signed with a
+Developer ID from the same team as the running copy, that macOS accepts the app as notarized, and
+that it really is the version the release claims. If any check fails, nothing is replaced.
+
+Builds from source signed ad hoc can't update themselves; they're offered the download page instead.
+Upgrading from 1.0.x, which has no updater yet, has to be done by hand once.
+
 ### Verifying the download
 
 Releases are signed with a Developer ID, notarized by Apple and built by
@@ -53,14 +68,18 @@ spctl --assess --type open --context context:primary-signature -v SpotKeys-x.y.z
 
 **SpotKeys does not collect, store or share any personal data. None.**
 
-- **No network.** SpotKeys never connects to the internet – no analytics, telemetry, crash reports,
-  ads, accounts or update checks. There is no networking code in the app at all.
+- **No network, except for updates.** The only connections SpotKeys makes are to GitHub, to check
+  for and download new releases: `api.github.com` once a day, and `github.com` when you install an
+  update. They carry no identifiers, cookies or data about you – GitHub sees only what any web
+  request reveals, like your IP address. Turn off *Check for Updates Automatically* and SpotKeys
+  stays offline unless you pick *Check for Updates…*. No analytics, telemetry, crash reports, ads or
+  accounts, ever.
 - **No logging of key presses.** Media key presses are handled in memory and forgotten immediately.
 - **Track info stays in the menu.** The artist and title SpotKeys reads from Spotify are only shown
   in the menu when you open it, never saved or sent anywhere.
-- **The only thing stored** is your two settings (*Control Spotify with Media Keys* and
-  *Launch Spotify on Play*), and only once you change them, in
-  `~/Library/Preferences/com.diddern.SpotKeys.plist` on your own Mac.
+- **The only things stored** are your settings (*Control Spotify with Media Keys*, *Launch Spotify
+  on Play* and *Check for Updates Automatically*, once you change them) and when SpotKeys last
+  checked for updates, in `~/Library/Preferences/com.diddern.SpotKeys.plist` on your own Mac.
 
 Don't take our word for it: the source is all here, and the releases are built from it in the
 open (see [Verifying the download](#verifying-the-download)).

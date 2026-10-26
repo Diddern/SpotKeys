@@ -14,3 +14,28 @@
 "About SpotKeys" = "Om SpotKeys";
 "Quit SpotKeys" = "Avslutt SpotKeys";
 "Play, pause, next and previous always go to Spotify." = "Play, pause, neste og forrige går alltid til Spotify.";
+
+/* Updates. */
+"Check for Updates Automatically" = "Se etter oppdateringer automatisk";
+"Check for Updates…" = "Se etter oppdateringer…";
+"Checking for Updates…" = "Ser etter oppdateringer…";
+"Installing SpotKeys %@…" = "Installerer SpotKeys %@…";
+"SpotKeys %@ Is Available" = "SpotKeys %@ er tilgjengelig";
+"You have version %@. SpotKeys downloads the update, checks that it’s signed by the same developer and restarts." = "Du har versjon %@. SpotKeys laster ned oppdateringen, sjekker at den er signert av samme utvikler og starter på nytt.";
+"Install and Restart" = "Installer og start på nytt";
+"Later" = "Senere";
+"Release Notes" = "Versjonsmerknader";
+"SpotKeys Is Up to Date" = "SpotKeys er oppdatert";
+"Version %@ is the newest version." = "Versjon %@ er den nyeste versjonen.";
+"Couldn’t Check for Updates" = "Kunne ikke se etter oppdateringer";
+"Couldn’t Update SpotKeys" = "Kunne ikke oppdatere SpotKeys";
+"OK" = "OK";
+"Download Manually…" = "Last ned manuelt…";
+"GitHub didn’t return the latest release. Try again later." = "GitHub svarte ikke med den nyeste versjonen. Prøv igjen senere.";
+"The release has no SpotKeys download." = "Versjonen har ingen SpotKeys-nedlasting.";
+"This copy of SpotKeys isn’t signed with a Developer ID, so it can’t update itself." = "Denne kopien av SpotKeys er ikke signert med en Developer ID, så den kan ikke oppdatere seg selv.";
+"Move SpotKeys to the Applications folder and open it from there, then try again." = "Flytt SpotKeys til Programmer-mappen og åpne den derfra, og prøv igjen.";
+"SpotKeys isn’t allowed to replace itself in %@." = "SpotKeys har ikke lov til å erstatte seg selv i %@.";
+"The downloaded disk image couldn’t be opened." = "Kunne ikke åpne det nedlastede diskbildet.";
+"The download isn’t signed by the SpotKeys developer, so it wasn’t installed." = "Nedlastingen er ikke signert av utvikleren av SpotKeys, så den ble ikke installert.";
+"macOS doesn’t accept the download as notarized, so it wasn’t installed." = "macOS godtar ikke nedlastingen som notarisert, så den ble ikke installert.";

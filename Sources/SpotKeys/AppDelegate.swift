@@ -3,6 +3,7 @@ import ServiceManagement
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let keyTap = MediaKeyTap()
+    private let updater = Updater()
     private let defaults = UserDefaults.standard
     private var statusItem: NSStatusItem!
     private var accessTimer: Timer?
@@ -22,7 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        defaults.register(defaults: ["interceptKeys": true, "launchSpotifyOnPlay": true])
+        defaults.register(defaults: ["interceptKeys": true, "launchSpotifyOnPlay": true, "checkForUpdates": true])
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         let menu = NSMenu()
@@ -32,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         keyTap.isEnabled = interceptKeys
         keyTap.onKeyDown = { [weak self] key in self?.handle(key) }
         installKeyTap(promptForAccess: true)
+        updater.start()
     }
 
     // MARK: - Media keys
@@ -110,7 +112,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(item(String(localized: "Launch Spotify on Play"), #selector(toggleLaunchSpotify), isOn: launchSpotifyOnPlay))
         menu.addItem(item(String(localized: "Open at Login"), #selector(toggleLoginItem),
                           isOn: SMAppService.mainApp.status == .enabled))
+        menu.addItem(item(String(localized: "Check for Updates Automatically"), #selector(toggleAutomaticUpdates),
+                          isOn: updater.checksAutomatically))
         menu.addItem(.separator())
+        if let status = updater.status {
+            menu.addItem(label(status))
+        } else {
+            menu.addItem(item(String(localized: "Check for Updates…"), #selector(checkForUpdates)))
+        }
         menu.addItem(item(String(localized: "About SpotKeys"), #selector(showAbout)))
         menu.addItem(item(String(localized: "Quit SpotKeys"), #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
     }
@@ -141,6 +150,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func toggleInterceptKeys() { interceptKeys.toggle() }
     @objc private func toggleLaunchSpotify() { launchSpotifyOnPlay.toggle() }
+    @objc private func toggleAutomaticUpdates() { updater.checksAutomatically.toggle() }
+    @objc private func checkForUpdates() { updater.checkNow() }
 
     @objc private func toggleLoginItem() {
         do {
