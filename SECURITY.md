@@ -19,4 +19,12 @@ Only the [latest release](../../releases/latest) receives security fixes.
 - **Automation → Spotify** – used only to send play/pause, next and previous, and to read whether
   Spotify is playing and the current track's artist and title for the menu.
 
-SpotKeys makes no network connections and stores nothing but its own two preferences.
+SpotKeys stores nothing but its own preferences and the time of the last update check.
+
+## Updates
+
+The only network connections SpotKeys makes are to GitHub, to check for and download releases.
+Before an update replaces the app, SpotKeys checks that the disk image and the app are signed with
+a Developer ID from the same team as the running copy, that the app's bundle identifier and version
+match the release, and that Gatekeeper accepts it as notarized. Reports about ways around these
+checks are especially welcome.
