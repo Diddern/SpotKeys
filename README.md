@@ -57,7 +57,8 @@ spctl --assess --type open --context context:primary-signature -v SpotKeys-x.y.z
 - **Track info stays in the menu.** The artist and title SpotKeys reads from Spotify are only shown
   in the menu when you open it, never saved or sent anywhere.
 - **The only thing stored** is your two settings (*Control Spotify with Media Keys* and
-  *Launch Spotify on Play*), in `~/Library/Preferences/com.diddern.SpotKeys.plist` on your own Mac.
+  *Launch Spotify on Play*), and only once you change them, in
+  `~/Library/Preferences/com.diddern.SpotKeys.plist` on your own Mac.
 
 Don't take our word for it: the source is all here, and the releases are built from it in the
 open (see [Verifying the download](#verifying-the-download)).
