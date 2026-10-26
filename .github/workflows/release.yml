@@ -1,5 +1,6 @@
 # Builds a signed and notarized SpotKeys DMG and publishes it as a GitHub release.
-# Triggered by pushing a version tag:  git tag v1.2.0 && git push origin v1.2.0
+# Started by auto-release.yml after every merge to main, or by pushing a version tag by hand:
+#   git tag v1.2.0 && git push origin v1.2.0
 #
 # Secrets live in the "release" environment, which only v* tags may deploy to:
 #   DEVELOPER_ID_P12           base64 of the exported "Developer ID Application" certificate (.p12)
@@ -12,6 +13,7 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:   # auto-release.yml starts it on a version tag
 
 permissions: {}
 
@@ -21,6 +23,8 @@ concurrency:
 
 jobs:
   release:
+    # Only ever release version tags, also when started by hand.
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-26
     environment: release
     permissions:

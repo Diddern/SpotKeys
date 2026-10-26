@@ -126,13 +126,21 @@ be asked again after every build.
 
 ## Releasing
 
-Push a version tag and GitHub Actions builds, signs and notarizes a DMG and publishes it as a
-release, together with a checksum and a build provenance attestation:
+Every merge to `main` is released automatically. [`auto-release.yml`](.github/workflows/auto-release.yml)
+tags the merge commit with the next version and starts [`release.yml`](.github/workflows/release.yml),
+which builds, signs and notarizes a DMG and publishes it together with a checksum and a build
+provenance attestation.
 
-```sh
-git tag v1.1.0
-git push origin v1.1.0
-```
+Labels on the pull request pick the version:
+
+| Label            | Example         |
+| ---------------- | --------------- |
+| *(none)*         | 1.4.2 → 1.4.3   |
+| `release: minor` | 1.4.2 → 1.5.0   |
+| `release: major` | 1.4.2 → 2.0.0   |
+| `skip release`   | no release      |
+
+You can still release by hand by pushing a tag: `git tag v1.5.0 && git push origin v1.5.0`.
 
 The workflow reads its secrets from the `release` environment, which only `v*` tags can deploy to:
 
