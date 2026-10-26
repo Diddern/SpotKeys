@@ -1,5 +1,6 @@
-APP := build/SpotKeys.app
-INSTALL_DIR := /Applications
+APP := $(HOME)/Library/Caches/SpotKeys/SpotKeys.app
+# ~/Applications needs no admin rights (and works where MDM locks down /Applications).
+INSTALL_DIR ?= $(HOME)/Applications
 BUNDLE_ID := com.diddern.SpotKeys
 
 .PHONY: build install run reset-permissions clean
@@ -8,12 +9,13 @@ build:
 	./scripts/build.sh
 
 install: build
-	-osascript -e 'quit app id "$(BUNDLE_ID)"'
+	@pkill -x SpotKeys || true
 	rm -rf "$(INSTALL_DIR)/SpotKeys.app"
-	cp -R "$(APP)" "$(INSTALL_DIR)/"
+	mkdir -p "$(INSTALL_DIR)"
+	ditto "$(APP)" "$(INSTALL_DIR)/SpotKeys.app"
 ifndef SIGN_IDENTITY
-	# Ad-hoc signatures change on every build, which invalidates the old Accessibility grant.
-	-tccutil reset Accessibility $(BUNDLE_ID)
+	@# Ad-hoc signatures change on every build, which invalidates the old Accessibility grant.
+	@tccutil reset Accessibility $(BUNDLE_ID) >/dev/null 2>&1 || true
 endif
 	open "$(INSTALL_DIR)/SpotKeys.app"
 
@@ -25,4 +27,4 @@ reset-permissions:
 	-tccutil reset AppleEvents $(BUNDLE_ID)
 
 clean:
-	rm -rf build "$(HOME)/Library/Caches/SpotKeys"
+	rm -rf "$(HOME)/Library/Caches/SpotKeys"

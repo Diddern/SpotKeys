@@ -26,7 +26,9 @@ En moderne erstatning for BeardedSpice, Mac Media Key Forwarder, noTunes og Stre
 make install
 ```
 
-Dette bygger `build/SpotKeys.app`, kopierer den til `/Applications` og starter den.
+Dette bygger appen, kopierer den til `~/Applications` (programmappa i hjemmemappa di) og starter den.
+Det krever ikke admin-rettigheter, og fungerer også på jobb-Macer der MDM låser `/Applications`.
+Vil du heller ha den i `/Applications`: `make install INSTALL_DIR=/Applications`.
 
 Første gang ber macOS om to tillatelser:
 
@@ -53,12 +55,14 @@ make install SIGN_IDENTITY="Apple Development: Navn Navnesen (XXXXXXXXXX)"
 
 | Kommando                 | Hva den gjør                                         |
 | ------------------------ | ---------------------------------------------------- |
-| `make build`             | Bygger `build/SpotKeys.app`                          |
-| `make run`               | Bygger og starter appen fra `build/`                 |
+| `make build`             | Bygger `~/Library/Caches/SpotKeys/SpotKeys.app`      |
+| `make run`               | Bygger og starter appen uten å installere den        |
 | `make reset-permissions` | Nullstiller Tilgjengelighet- og Automatisering-tilgang |
-| `make clean`             | Sletter build-mappa og byggecachen                   |
+| `make clean`             | Sletter bygget app og byggecachen                    |
 
-Byggecachen ligger i `~/Library/Caches/SpotKeys` så den ikke synkes til iCloud.
+Alt bygges i `~/Library/Caches/SpotKeys`, utenfor iCloud Drive. iCloud setter filattributter
+som gjør at `codesign` nekter å signere appen («resource fork, Finder information, or similar
+detritus not allowed»), og byggecachen skal uansett ikke synkes.
 
 ## Slik fungerer det
 
