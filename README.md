@@ -1,110 +1,141 @@
-<p align="center"><img src="docs/logo.png" width="160" alt="SpotKeys-logo"></p>
+<p align="center"><img src="docs/logo.png" width="160" alt="SpotKeys logo"></p>
 
 <h1 align="center">SpotKeys</h1>
 
-En liten menylinje-app for macOS (Apple Silicon) som tvinger mediatastene
-– **Play/Pause**, **Neste** og **Forrige** – til alltid å styre Spotify.
-Tastene blir aldri sendt til Musikk, Safari, YouTube eller andre «Spilles nå»-apper.
+<p align="center">A tiny macOS menu bar app that makes the media keys – <b>Play/Pause</b>, <b>Next</b> and
+<b>Previous</b> – always control Spotify.</p>
 
-En moderne erstatning for BeardedSpice, Mac Media Key Forwarder, noTunes og StreamKeys.
+macOS sends the media keys to whichever app last played audio, so a YouTube tab or Apple Music
+can suddenly steal them. SpotKeys catches the keys before macOS routes them and sends them straight
+to Spotify instead.
 
-## Funksjoner
+A modern, Apple Silicon–native replacement for BeardedSpice, Mac Media Key Forwarder, noTunes and
+StreamKeys.
 
-- Fanger F7/F8/F9 (og mediatastene på eksterne tastaturer) og sender dem til Spotify
-- Menylinje-ikon som viser hva som spilles, med manuelle knapper for play/pause, neste og forrige
-- Slå av/på fangingen av mediatastene uten å avslutte appen
-- Valgfritt: start Spotify når du trykker Play og Spotify ikke kjører
-- Valgfritt: start ved innlogging
-- Ingen Dock-ikon, ingen avhengigheter, ren Swift/AppKit
+## Features
 
-## Krav
+- Sends F7/F8/F9 (and the media keys on external keyboards) to Spotify
+- Menu bar icon showing what's playing, with buttons for play/pause, next and previous
+- Pause SpotKeys without quitting it
+- Optionally launches Spotify when you press Play
+- Optionally opens at login
+- No Dock icon, no network access, no dependencies – just Swift and AppKit
+- English and Norwegian
 
-- macOS 13 Ventura eller nyere
-- Xcode (eller Command Line Tools) for å bygge
+## Install
 
-## Installer
+1. Download `SpotKeys-x.y.z.dmg` from [Releases](../../releases/latest).
+2. Open the DMG and drag SpotKeys to Applications.
+3. Open SpotKeys. macOS will ask for two permissions:
+   - **Accessibility**, to catch the media keys. Go to
+     *System Settings → Privacy & Security → Accessibility* and turn on SpotKeys.
+     SpotKeys notices within a couple of seconds.
+   - **Automation → Spotify**, the first time SpotKeys controls Spotify. Click *Allow*.
 
-1. Last ned `SpotKeys-x.y.z.dmg` fra [Releases](../../releases/latest).
-2. Åpne DMG-en og dra SpotKeys til Programmer.
-3. Start SpotKeys. Første gang ber macOS om to tillatelser:
-   - **Tilgjengelighet** – for å fange mediatastene. Gå til
-     *Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet* og slå på SpotKeys.
-     Appen oppdager tilgangen automatisk etter et par sekunder.
-   - **Automatisering → Spotify** – vises første gang SpotKeys styrer Spotify. Trykk *Tillat*.
+Requires macOS 13 Ventura or later on Apple Silicon.
 
-Appen er signert med Developer ID og notarisert av Apple, så den åpnes uten advarsler.
+> Quit BeardedSpice and similar apps first, so they don't fight over the keys.
 
-> Avslutt BeardedSpice (og lignende apper) før du tar SpotKeys i bruk, så de ikke slåss om tastene.
+### Verifying the download
 
-## Bygg selv
+Releases are signed with a Developer ID, notarized by Apple and built by
+[GitHub Actions](.github/workflows/release.yml) straight from a tagged commit. To check a download:
+
+```sh
+shasum -a 256 -c SHA256SUMS.txt                       # matches the published checksum
+gh attestation verify SpotKeys-x.y.z.dmg -R Diddern/SpotKeys  # was built by this repository's workflow
+spctl --assess --type open --context context:primary-signature -v SpotKeys-x.y.z.dmg  # notarized
+```
+
+## Privacy and permissions
+
+SpotKeys needs Accessibility access because that is the only way macOS lets an app intercept the
+media keys. It uses that access narrowly:
+
+- The event tap listens **only** for system-defined events (`NX_SYSDEFINED`), which carry the media,
+  volume and brightness keys. Regular key presses never reach SpotKeys.
+- Only Play/Pause, Next and Previous are intercepted. Volume, brightness and everything else pass
+  through untouched.
+- Spotify is controlled over AppleScript. Besides sending commands, SpotKeys only reads whether
+  Spotify is playing and the current track's artist and title, to show them in the menu.
+- SpotKeys makes no network connections and collects no data.
+
+See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
+
+## Building from source
+
+Requires Xcode 26 (or the Command Line Tools; without Xcode you get the classic icon instead of the
+Liquid Glass one).
 
 ```sh
 make install
 ```
 
-Dette bygger appen, kopierer den til `~/Applications` (programmappa i hjemmemappa di) og starter den.
-Det krever ikke admin-rettigheter, og fungerer også på jobb-Macer der MDM låser `/Applications`.
-Vil du heller ha den i `/Applications`: `make install INSTALL_DIR=/Applications`.
+This builds the app, copies it to `~/Applications` and opens it. Installing to your home folder
+needs no admin rights and also works on managed Macs where `/Applications` is locked down. To install
+for all users instead: `make install INSTALL_DIR=/Applications`.
 
-### Signering
+| Command                  | What it does                                               |
+| ------------------------ | ---------------------------------------------------------- |
+| `make build`             | Builds `~/Library/Caches/SpotKeys/SpotKeys.app`            |
+| `make install`           | Builds, installs to `~/Applications` and opens SpotKeys    |
+| `make run`               | Builds and opens SpotKeys without installing it            |
+| `make release`           | Builds a signed, notarized DMG (see below)                 |
+| `make reset-permissions` | Resets the Accessibility and Automation permissions        |
+| `make clean`             | Deletes the built app and the build cache                  |
 
-Bygget signeres automatisk med første «Developer ID Application»- eller «Apple Development»-sertifikat
-i nøkkelringen, eller med `SIGN_IDENTITY` hvis den er satt. Finnes ingen sertifikater, blir appen
-ad-hoc-signert. Da knytter macOS tilgangen til akkurat den builden, så den må gis på nytt etter hver
-`make install` (den gamle oppføringen nullstilles automatisk).
+Everything is built in `~/Library/Caches/SpotKeys`, outside the source folder. If the source lives in
+iCloud Drive, iCloud tags files with extended attributes that `codesign` rejects.
 
-## Lage en ny utgivelse
+### Code signing
 
-Push en versjonstag, så bygger, signerer og notariserer GitHub Actions en DMG og legger den ut under Releases:
+The build is signed with the first *Developer ID Application* or *Apple Development* certificate in
+your keychain, or with `SIGN_IDENTITY` if set. Without a certificate the app is signed ad hoc. macOS
+then ties the Accessibility permission to that exact build, so `make install` resets it and you'll
+be asked again after every build.
+
+## Releasing
+
+Push a version tag and GitHub Actions builds, signs and notarizes a DMG and publishes it as a
+release, together with a checksum and a build provenance attestation:
 
 ```sh
 git tag v1.1.0
 git push origin v1.1.0
 ```
 
-Workflowen (`.github/workflows/release.yml`) trenger disse repository-secretene:
+The workflow reads its secrets from the `release` environment, which only `v*` tags can deploy to:
 
-| Secret                      | Innhold                                                        |
-| --------------------------- | -------------------------------------------------------------- |
-| `DEVELOPER_ID_P12`          | Developer ID Application-sertifikatet eksportert som .p12, base64 |
-| `DEVELOPER_ID_P12_PASSWORD` | Passordet til .p12-fila                                        |
-| `NOTARY_KEY_P8`             | App Store Connect API-nøkkel (.p8), base64                     |
-| `NOTARY_KEY_ID`             | Key ID for API-nøkkelen                                        |
-| `NOTARY_ISSUER_ID`          | Issuer ID for API-nøkkelen                                     |
+| Secret                      | Contents                                                         |
+| --------------------------- | ---------------------------------------------------------------- |
+| `DEVELOPER_ID_P12`          | The *Developer ID Application* certificate exported as .p12, base64 |
+| `DEVELOPER_ID_P12_PASSWORD` | The .p12 password                                                |
+| `NOTARY_KEY_P8`             | An App Store Connect API key (.p8), base64                       |
+| `NOTARY_KEY_ID`             | The API key's Key ID                                             |
+| `NOTARY_ISSUER_ID`          | The API key's Issuer ID                                          |
 
-Lokalt fungerer det samme med `make release VERSION=1.1.0 NOTARY_PROFILE=SpotKeys`, etter at
-påloggingen er lagret med `xcrun notarytool store-credentials SpotKeys`.
+To release from your own Mac instead, save notarization credentials once with
+`xcrun notarytool store-credentials SpotKeys` and run `make release VERSION=1.1.0 NOTARY_PROFILE=SpotKeys`.
 
-## Andre kommandoer
+## The icon
 
-| Kommando                 | Hva den gjør                                         |
-| ------------------------ | ---------------------------------------------------- |
-| `make build`             | Bygger `~/Library/Caches/SpotKeys/SpotKeys.app`      |
-| `make run`               | Bygger og starter appen uten å installere den        |
-| `make release`           | Signert og notarisert DMG (se over)                  |
-| `make reset-permissions` | Nullstiller Tilgjengelighet- og Automatisering-tilgang |
-| `make clean`             | Sletter bygget app og byggecachen                    |
-
-Alt bygges i `~/Library/Caches/SpotKeys`, utenfor iCloud Drive. iCloud setter filattributter
-som gjør at `codesign` nekter å signere appen («resource fork, Finder information, or similar
-detritus not allowed»), og byggecachen skal uansett ikke synkes.
-
-## Ikon
-
-App-ikonet tegnes av `scripts/make-icon.swift`. Etter endringer i tegningen:
+`scripts/make-icon.swift` draws the app icon. After changing the artwork, run:
 
 ```sh
 swift scripts/make-icon.swift
 ```
 
-Scriptet lager `Resources/AppIcon.icon` (Liquid Glass-ikon for macOS 26, kan også åpnes i
-Icon Composer), `Resources/AppIcon.icns` for eldre macOS og `docs/logo.png`.
-Menylinje-ikonet tegnes i koden (`StatusIcon.swift`): fylt tast når SpotKeys styrer
-mediatastene, omriss når det er slått av eller mangler tilgang.
+It writes `Resources/AppIcon.icon` (the Liquid Glass icon for macOS 26, which also opens in Icon
+Composer), `Resources/AppIcon.icns` for older macOS versions and `docs/logo.png`. The menu bar icon is
+drawn in code (`StatusIcon.swift`): a solid key cap while SpotKeys controls the media keys, an outline
+while it's paused or missing permissions.
 
-## Slik fungerer det
+## How it works
 
-SpotKeys installerer en `CGEventTap` som lytter etter `NX_SYSDEFINED`-hendelser
-(mediatastene). Play, neste og forrige blir svelget før macOS rekker å sende dem videre
-til «Spilles nå», og i stedet sendes `playpause`, `next track` eller `previous track` til Spotify
-via AppleScript. Alle andre taster (lyd, lysstyrke osv.) går upåvirket gjennom.
+SpotKeys installs a `CGEventTap` for `NX_SYSDEFINED` events. Play/Pause, Next and Previous are
+swallowed before macOS hands them to Now Playing, and `playpause`, `next track` or `previous track` is
+sent to Spotify over AppleScript instead.
+
+## License
+
+[MIT](LICENSE). SpotKeys is not affiliated with or endorsed by Spotify.

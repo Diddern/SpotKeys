@@ -80,27 +80,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         if let track = Spotify.nowPlaying() {
             menu.addItem(label((track.isPlaying ? "▶︎  " : "❚❚  ") + truncated(track.title)))
         } else {
-            menu.addItem(label(Spotify.isRunning ? "Ingenting spilles" : "Spotify kjører ikke"))
+            menu.addItem(label(Spotify.isRunning
+                ? String(localized: "Nothing Playing")
+                : String(localized: "Spotify Isn’t Running")))
         }
         menu.addItem(.separator())
-        menu.addItem(item("Spill av / Pause", #selector(playPause)))
-        menu.addItem(item("Neste spor", #selector(nextTrack)))
-        menu.addItem(item("Forrige spor", #selector(previousTrack)))
+        menu.addItem(item(String(localized: "Play / Pause"), #selector(playPause)))
+        menu.addItem(item(String(localized: "Next Track"), #selector(nextTrack)))
+        menu.addItem(item(String(localized: "Previous Track"), #selector(previousTrack)))
         menu.addItem(.separator())
 
         if !keyTap.isInstalled {
-            menu.addItem(label("⚠︎  SpotKeys trenger tilgang til Tilgjengelighet"))
-            menu.addItem(item("Åpne Systeminnstillinger…", #selector(openAccessibilitySettings)))
+            menu.addItem(label(String(localized: "⚠︎  SpotKeys Needs Accessibility Access")))
+            menu.addItem(item(String(localized: "Open System Settings…"), #selector(openAccessibilitySettings)))
             menu.addItem(.separator())
         }
 
-        menu.addItem(item("Styr Spotify med mediatastene", #selector(toggleInterceptKeys), isOn: interceptKeys))
-        menu.addItem(item("Start Spotify ved Play", #selector(toggleLaunchSpotify), isOn: launchSpotifyOnPlay))
-        menu.addItem(item("Start ved innlogging", #selector(toggleLoginItem),
+        menu.addItem(item(String(localized: "Control Spotify with Media Keys"), #selector(toggleInterceptKeys), isOn: interceptKeys))
+        menu.addItem(item(String(localized: "Launch Spotify on Play"), #selector(toggleLaunchSpotify), isOn: launchSpotifyOnPlay))
+        menu.addItem(item(String(localized: "Open at Login"), #selector(toggleLoginItem),
                           isOn: SMAppService.mainApp.status == .enabled))
         menu.addItem(.separator())
-        menu.addItem(item("Om SpotKeys", #selector(showAbout)))
-        menu.addItem(item("Avslutt SpotKeys", #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
+        menu.addItem(item(String(localized: "About SpotKeys"), #selector(showAbout)))
+        menu.addItem(item(String(localized: "Quit SpotKeys"), #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
     }
 
     private func item(_ title: String, _ action: Selector, key: String = "", isOn: Bool = false,
@@ -151,7 +153,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
         NSApp.orderFrontStandardAboutPanel(options: [
-            .credits: NSAttributedString(string: "Play, pause, neste og forrige går alltid til Spotify.")
+            .credits: NSAttributedString(string: String(localized: "Play, pause, next and previous always go to Spotify."))
         ])
     }
 }

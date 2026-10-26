@@ -1,7 +1,7 @@
 # Builds a signed and notarized SpotKeys DMG and publishes it as a GitHub release.
 # Triggered by pushing a version tag:  git tag v1.2.0 && git push origin v1.2.0
 #
-# Repository secrets:
+# Secrets live in the "release" environment, which only v* tags may deploy to:
 #   DEVELOPER_ID_P12           base64 of the exported "Developer ID Application" certificate (.p12)
 #   DEVELOPER_ID_P12_PASSWORD  password for the .p12
 #   NOTARY_KEY_P8              base64 of the App Store Connect API key (.p8)
@@ -13,21 +13,36 @@ on:
   push:
     tags: ["v*"]
 
-permissions:
-  contents: write
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: macos-26
+    environment: release
+    permissions:
+      contents: write       # create the GitHub release
+      id-token: write       # sign the build provenance attestation
+      attestations: write
+    env:
+      KEYCHAIN: ${{ runner.temp }}/signing.keychain-db
+      NOTARY_KEY_PATH: ${{ runner.temp }}/notary.p8
+      OUT_DIR: ${{ runner.temp }}/spotkeys
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Import signing certificate
         env:
           DEVELOPER_ID_P12: ${{ secrets.DEVELOPER_ID_P12 }}
           DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          # SHA-256 of Apple's "Developer ID Certification Authority" (G2) intermediate certificate.
+          DEVELOPER_ID_G2_SHA256: f16cd3c54c7f83cea4bf1a3e6a0819c8aaa8e4a1528fd144715f350643d2df3a
         run: |
-          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
           KEYCHAIN_PASSWORD="$(uuidgen)"
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
           security set-keychain-settings -lut 3600 "$KEYCHAIN"
@@ -36,11 +51,12 @@ jobs:
           echo "$DEVELOPER_ID_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
           security import "$RUNNER_TEMP/certificate.p12" -k "$KEYCHAIN" \
             -P "$DEVELOPER_ID_P12_PASSWORD" -T /usr/bin/codesign
-          rm "$RUNNER_TEMP/certificate.p12"
+          rm -f "$RUNNER_TEMP/certificate.p12"
 
           # The intermediate certificate isn't always included in the .p12.
           curl -fsSL -o "$RUNNER_TEMP/DeveloperIDG2CA.cer" \
             https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+          echo "$DEVELOPER_ID_G2_SHA256  $RUNNER_TEMP/DeveloperIDG2CA.cer" | shasum -a 256 -c -
           security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k "$KEYCHAIN" || true
 
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN" >/dev/null
@@ -52,15 +68,27 @@ jobs:
           NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
           NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
         run: |
-          export NOTARY_KEY_PATH="$RUNNER_TEMP/notary.p8"
           echo "$NOTARY_KEY_P8" | base64 --decode > "$NOTARY_KEY_PATH"
-          VERSION="${GITHUB_REF_NAME#v}" OUT_DIR="$RUNNER_TEMP/spotkeys" scripts/release.sh
-          rm "$NOTARY_KEY_PATH"
+          VERSION="${GITHUB_REF_NAME#v}" scripts/release.sh
+          cd "$OUT_DIR" && shasum -a 256 "SpotKeys-${GITHUB_REF_NAME#v}.dmg" > SHA256SUMS.txt
+
+      - name: Attest build provenance
+        if: ${{ !github.event.repository.private }}   # Attestations need a public repository on free plans.
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ runner.temp }}/spotkeys/SpotKeys-*.dmg
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/spotkeys/SpotKeys-$VERSION.dmg" \
+          gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+            "$OUT_DIR/SpotKeys-$VERSION.dmg" "$OUT_DIR/SHA256SUMS.txt" \
             --title "SpotKeys $VERSION" --generate-notes
+
+      - name: Remove signing material
+        if: ${{ always() }}
+        run: |
+          security delete-keychain "$KEYCHAIN" 2>/dev/null || true
+          rm -f "$NOTARY_KEY_PATH" "$RUNNER_TEMP/certificate.p12"

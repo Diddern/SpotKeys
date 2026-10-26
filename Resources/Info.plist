@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>nb</string>
+	<string>en</string>
 	<key>CFBundleExecutable</key>
 	<string>SpotKeys</string>
 	<key>CFBundleIconFile</key>
@@ -29,8 +29,8 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>SpotKeys</string>
+	<string>© 2026 Didrik Sæther. MIT License.</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>SpotKeys sender play, pause, neste og forrige til Spotify.</string>
+	<string>SpotKeys sends play, pause, next and previous to Spotify.</string>
 </dict>
 </plist>

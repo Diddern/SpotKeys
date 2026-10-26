@@ -30,6 +30,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN_DIR/SpotKeys" "$APP/Contents/MacOS/SpotKeys"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 # Liquid Glass icon for macOS 26+. Needs Xcode; older systems fall back to AppIcon.icns.
 if ! xcrun actool Resources/AppIcon.icon --compile "$OUT_DIR/icon" --platform macosx \
         --minimum-deployment-target 13.0 --app-icon AppIcon \
@@ -40,6 +41,8 @@ else
 fi
 
 if [[ -n "${VERSION:-}" ]]; then
+    # VERSION ends up in a PlistBuddy command, so only accept plain version numbers.
+    [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid VERSION: $VERSION" >&2; exit 1; }
     /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" \
         -c "Set :CFBundleVersion $VERSION" "$APP/Contents/Info.plist"
 fi

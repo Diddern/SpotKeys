@@ -1,0 +1,14 @@
+/* Menu bar menu and About panel. */
+"Nothing Playing" = "Ingenting spilles";
+"Spotify Isn’t Running" = "Spotify kjører ikke";
+"Play / Pause" = "Spill av / Pause";
+"Next Track" = "Neste spor";
+"Previous Track" = "Forrige spor";
+"⚠︎  SpotKeys Needs Accessibility Access" = "⚠︎  SpotKeys trenger tilgang til Tilgjengelighet";
+"Open System Settings…" = "Åpne Systeminnstillinger…";
+"Control Spotify with Media Keys" = "Styr Spotify med mediatastene";
+"Launch Spotify on Play" = "Start Spotify ved Play";
+"Open at Login" = "Start ved innlogging";
+"About SpotKeys" = "Om SpotKeys";
+"Quit SpotKeys" = "Avslutt SpotKeys";
+"Play, pause, next and previous always go to Spotify." = "Play, pause, neste og forrige går alltid til Spotify.";

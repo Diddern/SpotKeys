@@ -10,6 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 export VERSION="${VERSION:?Set VERSION, e.g. VERSION=1.2.0}"
+[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid VERSION: $VERSION" >&2; exit 1; }
 export OUT_DIR="${OUT_DIR:-$HOME/Library/Caches/SpotKeys}"
 if [[ -z "${SIGN_IDENTITY:-}" ]]; then
     SIGN_IDENTITY="$(security find-identity -v -p codesigning |
