@@ -26,15 +26,18 @@ jobs:
     permissions:
       contents: write       # create the GitHub release
       id-token: write       # sign the build provenance attestation
-      attestations: write
-    env:
-      KEYCHAIN: ${{ runner.temp }}/signing.keychain-db
-      NOTARY_KEY_PATH: ${{ runner.temp }}/notary.p8
-      OUT_DIR: ${{ runner.temp }}/spotkeys
+      attestations: write   # store the attestation
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      # The runner context isn't available in job-level env, so set the paths here.
+      - name: Set paths
+        run: |
+          echo "KEYCHAIN=$RUNNER_TEMP/signing.keychain-db" >> "$GITHUB_ENV"
+          echo "NOTARY_KEY_PATH=$RUNNER_TEMP/notary.p8" >> "$GITHUB_ENV"
+          echo "OUT_DIR=$RUNNER_TEMP/spotkeys" >> "$GITHUB_ENV"
 
       - name: Import signing certificate
         env:

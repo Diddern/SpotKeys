@@ -1,4 +1,5 @@
-# Builds SpotKeys for every pull request. The "build" job is a required check on main.
+# Builds SpotKeys and lints the workflows for every pull request.
+# The "build" and "lint" jobs are required checks on main.
 name: CI
 
 on:
@@ -25,3 +26,17 @@ jobs:
         env:
           SIGN_IDENTITY: "-"   # ad-hoc; pull requests never get signing secrets
         run: make build
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Lint workflows
+        run: |
+          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+          pipx install zizmor==1.31.1
+          "$(go env GOPATH)/bin/actionlint" -shellcheck=
+          zizmor --offline .github/workflows/
