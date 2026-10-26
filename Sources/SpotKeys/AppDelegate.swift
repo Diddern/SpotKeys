@@ -25,9 +25,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         defaults.register(defaults: ["interceptKeys": true, "launchSpotifyOnPlay": true])
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        let image = NSImage(systemSymbolName: "playpause.fill", accessibilityDescription: "SpotKeys")
-        image?.isTemplate = true
-        statusItem.button?.image = image
         let menu = NSMenu()
         menu.delegate = self
         statusItem.menu = menu
@@ -69,7 +66,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     }
 
     private func updateIcon() {
-        statusItem?.button?.appearsDisabled = !(keyTap.isInstalled && interceptKeys)
+        // A solid key cap while SpotKeys owns the media keys, an outline while it doesn't.
+        let isActive = keyTap.isInstalled && interceptKeys
+        statusItem?.button?.image = StatusIcon.make(filled: isActive)
+        statusItem?.button?.appearsDisabled = !isActive
     }
 
     // MARK: - Menu

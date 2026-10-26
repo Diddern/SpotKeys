@@ -1,4 +1,6 @@
-# SpotKeys
+<p align="center"><img src="docs/logo.png" width="160" alt="SpotKeys-logo"></p>
+
+<h1 align="center">SpotKeys</h1>
 
 En liten menylinje-app for macOS (Apple Silicon) som tvinger mediatastene
 – **Play/Pause**, **Neste** og **Forrige** – til alltid å styre Spotify.
@@ -63,6 +65,19 @@ make install SIGN_IDENTITY="Apple Development: Navn Navnesen (XXXXXXXXXX)"
 Alt bygges i `~/Library/Caches/SpotKeys`, utenfor iCloud Drive. iCloud setter filattributter
 som gjør at `codesign` nekter å signere appen («resource fork, Finder information, or similar
 detritus not allowed»), og byggecachen skal uansett ikke synkes.
+
+## Ikon
+
+App-ikonet tegnes av `scripts/make-icon.swift`. Etter endringer i tegningen:
+
+```sh
+swift scripts/make-icon.swift
+```
+
+Scriptet lager `Resources/AppIcon.icon` (Liquid Glass-ikon for macOS 26, kan også åpnes i
+Icon Composer), `Resources/AppIcon.icns` for eldre macOS og `docs/logo.png`.
+Menylinje-ikonet tegnes i koden (`StatusIcon.swift`): fylt tast når SpotKeys styrer
+mediatastene, omriss når det er slått av eller mangler tilgang.
 
 ## Slik fungerer det
 
