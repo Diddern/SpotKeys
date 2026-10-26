@@ -19,7 +19,7 @@ StreamKeys.
 - Pause SpotKeys without quitting it
 - Optionally launches Spotify when you press Play
 - Optionally opens at login
-- No Dock icon, no network access, no dependencies – just Swift and AppKit
+- No Dock icon, no data collection, no network access, no dependencies – just Swift and AppKit
 - English and Norwegian
 
 ## Install
@@ -47,7 +47,31 @@ gh attestation verify SpotKeys-x.y.z.dmg -R Diddern/SpotKeys  # was built by thi
 spctl --assess --type open --context context:primary-signature -v SpotKeys-x.y.z.dmg  # notarized
 ```
 
-## Privacy and permissions
+## Privacy
+
+**SpotKeys does not collect, store or share any personal data. None.**
+
+- **No network.** SpotKeys never connects to the internet – no analytics, telemetry, crash reports,
+  ads, accounts or update checks. There is no networking code in the app at all.
+- **No logging of key presses.** Media key presses are handled in memory and forgotten immediately.
+- **Track info stays in the menu.** The artist and title SpotKeys reads from Spotify are only shown
+  in the menu when you open it, never saved or sent anywhere.
+- **The only thing stored** is your two settings (*Control Spotify with Media Keys* and
+  *Launch Spotify on Play*), in `~/Library/Preferences/com.diddern.SpotKeys.plist` on your own Mac.
+
+Don't take our word for it: the source is all here, and the releases are built from it in the
+open (see [Verifying the download](#verifying-the-download)).
+
+### Uninstalling
+
+Quit SpotKeys, delete it from Applications, and remove the settings and permissions:
+
+```sh
+defaults delete com.diddern.SpotKeys
+tccutil reset All com.diddern.SpotKeys
+```
+
+## Permissions
 
 SpotKeys needs Accessibility access because that is the only way macOS lets an app intercept the
 media keys. It uses that access narrowly:
@@ -58,9 +82,13 @@ media keys. It uses that access narrowly:
   through untouched.
 - Spotify is controlled over AppleScript. Besides sending commands, SpotKeys only reads whether
   Spotify is playing and the current track's artist and title, to show them in the menu.
-- SpotKeys makes no network connections and collects no data.
 
 See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
+
+## Contributing
+
+Pull requests are welcome. `main` is protected: every change goes through a pull request that must
+pass the CI build and CodeQL scanning, and is squash-merged.
 
 ## Building from source
 
