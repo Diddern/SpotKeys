@@ -3,7 +3,7 @@ APP := $(HOME)/Library/Caches/SpotKeys/SpotKeys.app
 INSTALL_DIR ?= $(HOME)/Applications
 BUNDLE_ID := com.diddern.SpotKeys
 
-.PHONY: build install run reset-permissions clean
+.PHONY: build install run release reset-permissions clean
 
 build:
 	./scripts/build.sh
@@ -13,14 +13,18 @@ install: build
 	rm -rf "$(INSTALL_DIR)/SpotKeys.app"
 	mkdir -p "$(INSTALL_DIR)"
 	ditto "$(APP)" "$(INSTALL_DIR)/SpotKeys.app"
-ifndef SIGN_IDENTITY
 	@# Ad-hoc signatures change on every build, which invalidates the old Accessibility grant.
-	@tccutil reset Accessibility $(BUNDLE_ID) >/dev/null 2>&1 || true
-endif
+	@if codesign -dv "$(INSTALL_DIR)/SpotKeys.app" 2>&1 | grep -q "Signature=adhoc"; then \
+		tccutil reset Accessibility $(BUNDLE_ID) >/dev/null 2>&1 || true; \
+	fi
 	open "$(INSTALL_DIR)/SpotKeys.app"
 
 run: build
 	open "$(APP)"
+
+# Signed, notarized DMG. Usage: make release VERSION=1.2.0 NOTARY_PROFILE=SpotKeys
+release:
+	./scripts/release.sh
 
 reset-permissions:
 	-tccutil reset Accessibility $(BUNDLE_ID)

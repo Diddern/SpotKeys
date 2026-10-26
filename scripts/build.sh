@@ -1,6 +1,9 @@
 #!/bin/bash
-# Builds an Apple Silicon SpotKeys.app and prints its path.
-# Set SIGN_IDENTITY to a code signing identity to avoid re-granting permissions after every build.
+# Builds an Apple Silicon SpotKeys.app.
+#
+# Signs with SIGN_IDENTITY if set, otherwise with the first "Developer ID Application" or
+# "Apple Development" identity in the keychain, falling back to an ad-hoc signature.
+# Set VERSION (e.g. 1.2.0) to stamp the version into the app.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -8,6 +11,15 @@ cd "$(dirname "$0")/.."
 OUT_DIR="${OUT_DIR:-$HOME/Library/Caches/SpotKeys}"
 SWIFT_FLAGS=(-c release --arch arm64 --scratch-path "$OUT_DIR/build")
 APP="$OUT_DIR/SpotKeys.app"
+
+find_identity() {
+    security find-identity -v -p codesigning | awk -F'"' -v kind="$1" 'index($2, kind) == 1 { print $2; exit }'
+}
+if [[ -z "${SIGN_IDENTITY:-}" ]]; then
+    SIGN_IDENTITY="$(find_identity "Developer ID Application")"
+    [[ -n "$SIGN_IDENTITY" ]] || SIGN_IDENTITY="$(find_identity "Apple Development")"
+    [[ -n "$SIGN_IDENTITY" ]] || SIGN_IDENTITY="-"
+fi
 
 swift build "${SWIFT_FLAGS[@]}"
 mkdir -p "$OUT_DIR/icon"
@@ -26,7 +38,19 @@ if ! xcrun actool Resources/AppIcon.icon --compile "$OUT_DIR/icon" --platform ma
 else
     cp "$OUT_DIR/icon/Assets.car" "$APP/Contents/Resources/Assets.car"
 fi
-xattr -cr "$APP"
-codesign --force --sign "${SIGN_IDENTITY:--}" "$APP"
 
-echo "Built $APP"
+if [[ -n "${VERSION:-}" ]]; then
+    /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" \
+        -c "Set :CFBundleVersion $VERSION" "$APP/Contents/Info.plist"
+fi
+
+xattr -cr "$APP"
+if [[ "$SIGN_IDENTITY" == "-" ]]; then
+    TIMESTAMP=--timestamp=none
+else
+    TIMESTAMP=--timestamp
+fi
+codesign --force --options runtime "$TIMESTAMP" --entitlements Resources/SpotKeys.entitlements \
+    --sign "$SIGN_IDENTITY" "$APP"
+
+echo "Built $APP (signed with: $([[ "$SIGN_IDENTITY" == "-" ]] && echo ad-hoc || echo "$SIGN_IDENTITY"))"

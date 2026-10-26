@@ -22,7 +22,21 @@ En moderne erstatning for BeardedSpice, Mac Media Key Forwarder, noTunes og Stre
 - macOS 13 Ventura eller nyere
 - Xcode (eller Command Line Tools) for å bygge
 
-## Bygg og installer
+## Installer
+
+1. Last ned `SpotKeys-x.y.z.dmg` fra [Releases](../../releases/latest).
+2. Åpne DMG-en og dra SpotKeys til Programmer.
+3. Start SpotKeys. Første gang ber macOS om to tillatelser:
+   - **Tilgjengelighet** – for å fange mediatastene. Gå til
+     *Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet* og slå på SpotKeys.
+     Appen oppdager tilgangen automatisk etter et par sekunder.
+   - **Automatisering → Spotify** – vises første gang SpotKeys styrer Spotify. Trykk *Tillat*.
+
+Appen er signert med Developer ID og notarisert av Apple, så den åpnes uten advarsler.
+
+> Avslutt BeardedSpice (og lignende apper) før du tar SpotKeys i bruk, så de ikke slåss om tastene.
+
+## Bygg selv
 
 ```sh
 make install
@@ -32,26 +46,34 @@ Dette bygger appen, kopierer den til `~/Applications` (programmappa i hjemmemapp
 Det krever ikke admin-rettigheter, og fungerer også på jobb-Macer der MDM låser `/Applications`.
 Vil du heller ha den i `/Applications`: `make install INSTALL_DIR=/Applications`.
 
-Første gang ber macOS om to tillatelser:
+### Signering
 
-1. **Tilgjengelighet** – for å fange mediatastene. Gå til
-   *Systeminnstillinger → Personvern og sikkerhet → Tilgjengelighet* og slå på SpotKeys.
-   Appen oppdager tilgangen automatisk etter et par sekunder.
-2. **Automatisering → Spotify** – vises første gang SpotKeys styrer Spotify. Trykk *Tillat*.
+Bygget signeres automatisk med første «Developer ID Application»- eller «Apple Development»-sertifikat
+i nøkkelringen, eller med `SIGN_IDENTITY` hvis den er satt. Finnes ingen sertifikater, blir appen
+ad-hoc-signert. Da knytter macOS tilgangen til akkurat den builden, så den må gis på nytt etter hver
+`make install` (den gamle oppføringen nullstilles automatisk).
 
-> Avslutt BeardedSpice (og lignende apper) før du tar SpotKeys i bruk, så de ikke slåss om tastene.
+## Lage en ny utgivelse
 
-### Om signering og tillatelser
-
-Uten et utviklersertifikat blir appen ad-hoc-signert. macOS knytter tilgangen til signaturen,
-så etter hver ny build må tilgangen gis på nytt – `make install` nullstiller den gamle
-oppføringen automatisk, så du får et nytt spørsmål.
-
-Har du et signeringssertifikat, slipper du dette:
+Push en versjonstag, så bygger, signerer og notariserer GitHub Actions en DMG og legger den ut under Releases:
 
 ```sh
-make install SIGN_IDENTITY="Apple Development: Navn Navnesen (XXXXXXXXXX)"
+git tag v1.1.0
+git push origin v1.1.0
 ```
+
+Workflowen (`.github/workflows/release.yml`) trenger disse repository-secretene:
+
+| Secret                      | Innhold                                                        |
+| --------------------------- | -------------------------------------------------------------- |
+| `DEVELOPER_ID_P12`          | Developer ID Application-sertifikatet eksportert som .p12, base64 |
+| `DEVELOPER_ID_P12_PASSWORD` | Passordet til .p12-fila                                        |
+| `NOTARY_KEY_P8`             | App Store Connect API-nøkkel (.p8), base64                     |
+| `NOTARY_KEY_ID`             | Key ID for API-nøkkelen                                        |
+| `NOTARY_ISSUER_ID`          | Issuer ID for API-nøkkelen                                     |
+
+Lokalt fungerer det samme med `make release VERSION=1.1.0 NOTARY_PROFILE=SpotKeys`, etter at
+påloggingen er lagret med `xcrun notarytool store-credentials SpotKeys`.
 
 ## Andre kommandoer
 
@@ -59,6 +81,7 @@ make install SIGN_IDENTITY="Apple Development: Navn Navnesen (XXXXXXXXXX)"
 | ------------------------ | ---------------------------------------------------- |
 | `make build`             | Bygger `~/Library/Caches/SpotKeys/SpotKeys.app`      |
 | `make run`               | Bygger og starter appen uten å installere den        |
+| `make release`           | Signert og notarisert DMG (se over)                  |
 | `make reset-permissions` | Nullstiller Tilgjengelighet- og Automatisering-tilgang |
 | `make clean`             | Sletter bygget app og byggecachen                    |
 
