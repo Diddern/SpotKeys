@@ -162,8 +162,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     @objc private func showAbout() {
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(options: [
-            .credits: NSAttributedString(string: String(localized: "Play, pause, next and previous always go to Spotify."))
-        ])
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
+            .foregroundColor: NSColor.labelColor,
+            .paragraphStyle: paragraph,
+        ]
+        let credits = NSMutableAttributedString(
+            string: String(localized: "Play, pause, next and previous always go to Spotify.") + "\n\n",
+            attributes: attributes)
+        var linkAttributes = attributes
+        linkAttributes[.link] = Self.repositoryURL
+        credits.append(NSAttributedString(string: "github.com/Diddern/SpotKeys", attributes: linkAttributes))
+
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }
+
+    private static let repositoryURL = URL(string: "https://github.com/Diddern/SpotKeys")!
 }
